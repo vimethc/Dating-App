@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../profile/presentation/screens/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,30 +23,43 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppTheme.primaryColor,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.explore),
-            label: 'Discover',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
-            label: 'Matches',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat_bubble),
-            label: 'Messages',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 10,
+              offset: const Offset(0, -1),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) => setState(() => _currentIndex = index),
+          type: BottomNavigationBarType.fixed,
+          selectedItemColor: AppTheme.primaryColor,
+          unselectedItemColor: Colors.grey,
+          showUnselectedLabels: true,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.explore),
+              label: 'Discover',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.favorite),
+              label: 'Matches',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.chat_bubble),
+              label: 'Messages',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -82,56 +94,6 @@ class MessagesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Center(
       child: Text('Messages Screen - Coming Soon'),
-    );
-  }
-}
-
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthProvider>();
-    final user = authProvider.user;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => authProvider.signOut(),
-          ),
-        ],
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircleAvatar(
-              radius: 50,
-              backgroundImage: user?.photoUrl != null
-                  ? NetworkImage(user!.photoUrl!)
-                  : null,
-              child: user?.photoUrl == null
-                  ? const Icon(Icons.person, size: 50)
-                  : null,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              user?.name ?? 'User Name',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              user?.email ?? 'user@example.com',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.grey,
-                  ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 } 

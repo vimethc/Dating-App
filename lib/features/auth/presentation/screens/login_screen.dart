@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/custom_button.dart';
+import '../../../home/presentation/screens/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,6 +15,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -22,9 +24,40 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _handleLogin() {
+  void _handleLogin() async {
     if (_formKey.currentState?.validate() ?? false) {
-      // TODO: Implement login logic
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        // TODO: Implement actual authentication logic here
+        // Simulating network delay
+        await Future.delayed(const Duration(seconds: 1));
+        
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+          );
+        }
+      } catch (e) {
+        // Show error message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Login failed. Please try again.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     }
   }
 
@@ -150,7 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: _handleLogin,
+                  onPressed: _isLoading ? null : _handleLogin,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryColor,
                     foregroundColor: Colors.white,
@@ -159,13 +192,22 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  child: const Text(
-                    'Sign In',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'Sign In',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                 ),
                 const SizedBox(height: 24),
                 Row(
