@@ -14,7 +14,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _pageController = PageController();
   int _currentStep = 0;
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   // Form controllers
   final _nameController = TextEditingController();
@@ -101,7 +101,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               LinearProgressIndicator(
                 value: (_currentStep + 1) / 3,
                 backgroundColor: Colors.grey[200],
-                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
               ),
               Expanded(
                 child: PageView(

@@ -38,6 +38,12 @@
       "languageVersion": "3.0"
     },
     {
+      "name": "card_swiper",
+      "rootUri": "file:///Users/chamma/.pub-cache/hosted/pub.dev/card_swiper-3.0.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.15"
+    },
+    {
       "name": "characters",
       "rootUri": "file:///Users/chamma/.pub-cache/hosted/pub.dev/characters-1.4.0",
       "packageUri": "lib/",
@@ -134,10 +140,16 @@
       "languageVersion": "3.0"
     },
     {
-      "name": "flutter_lints",
-      "rootUri": "file:///Users/chamma/.pub-cache/hosted/pub.dev/flutter_lints-5.0.0",
+      "name": "flutter_card_swiper",
+      "rootUri": "file:///Users/chamma/.pub-cache/hosted/pub.dev/flutter_card_swiper-6.1.0",
       "packageUri": "lib/",
-      "languageVersion": "3.5"
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "flutter_lints",
+      "rootUri": "file:///Users/chamma/.pub-cache/hosted/pub.dev/flutter_lints-2.0.3",
+      "packageUri": "lib/",
+      "languageVersion": "2.19"
     },
     {
       "name": "flutter_plugin_android_lifecycle",
@@ -147,15 +159,9 @@
     },
     {
       "name": "flutter_svg",
-      "rootUri": "file:///Users/chamma/.pub-cache/hosted/pub.dev/flutter_svg-2.0.17",
+      "rootUri": "file:///Users/chamma/.pub-cache/hosted/pub.dev/flutter_svg-2.1.0",
       "packageUri": "lib/",
       "languageVersion": "3.4"
-    },
-    {
-      "name": "flutter_swipable",
-      "rootUri": "file:///Users/chamma/.pub-cache/hosted/pub.dev/flutter_swipable-1.2.1",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
     },
     {
       "name": "flutter_test",
@@ -321,9 +327,9 @@
     },
     {
       "name": "lints",
-      "rootUri": "file:///Users/chamma/.pub-cache/hosted/pub.dev/lints-5.1.1",
+      "rootUri": "file:///Users/chamma/.pub-cache/hosted/pub.dev/lints-2.1.1",
       "packageUri": "lib/",
-      "languageVersion": "3.6"
+      "languageVersion": "3.0"
     },
     {
       "name": "matcher",
@@ -716,7 +722,7 @@
       "languageVersion": "3.0"
     }
   ],
-  "generated": "2025-04-18T14:00:23.414518Z",
+  "generated": "2025-04-19T13:51:53.532424Z",
   "generator": "pub",
   "generatorVersion": "3.7.0",
   "flutterRoot": "file:///Users/chamma/Development/flutter",

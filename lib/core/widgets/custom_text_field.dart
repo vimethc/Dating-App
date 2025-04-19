@@ -108,11 +108,11 @@ class _CustomTextFieldState extends State<CustomTextField> {
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppTheme.errorColor, width: 2),
+          borderSide: const BorderSide(color: AppTheme.errorColor, width: 2),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppTheme.errorColor, width: 2),
+          borderSide: const BorderSide(color: AppTheme.errorColor, width: 2),
         ),
         filled: true,
         fillColor: widget.enabled ? Colors.transparent : Colors.grey[100],
