@@ -337,7 +337,7 @@ Interests: ${userData['interests'].join(', ')}
               ),
               child: Text(
                 interest,
-                style: TextStyle(
+                style: const TextStyle(
                   color: AppTheme.primaryColor,
                   fontWeight: FontWeight.w500,
                 ),

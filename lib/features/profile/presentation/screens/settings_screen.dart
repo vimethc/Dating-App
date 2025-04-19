@@ -167,7 +167,7 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                     },
                     title: Text(theme),
                     trailing: theme == _selectedTheme
-                        ? Icon(
+                        ? const Icon(
                             Icons.check_circle,
                             color: AppTheme.primaryColor,
                           )
@@ -204,14 +204,14 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
     return Theme(
       data: Theme.of(context).copyWith(
         switchTheme: SwitchThemeData(
-          thumbColor: MaterialStateProperty.resolveWith<Color>((Set<MaterialState> states) {
-            if (states.contains(MaterialState.selected)) {
+          thumbColor: WidgetStateProperty.resolveWith<Color>((Set<WidgetState> states) {
+            if (states.contains(WidgetState.selected)) {
               return AppTheme.primaryColor;
             }
             return Colors.grey;
           }),
-          trackColor: MaterialStateProperty.resolveWith<Color>((Set<MaterialState> states) {
-            if (states.contains(MaterialState.selected)) {
+          trackColor: WidgetStateProperty.resolveWith<Color>((Set<WidgetState> states) {
+            if (states.contains(WidgetState.selected)) {
               return AppTheme.primaryColor.withOpacity(0.5);
             }
             return Colors.grey.withOpacity(0.3);
@@ -314,7 +314,7 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                                 const SizedBox(height: 4),
                                 Text(
                                   '${_searchRadius.round()} km',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: AppTheme.primaryColor,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -360,7 +360,7 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                                 const SizedBox(height: 4),
                                 Text(
                                   '${_ageRange.start.round()} - ${_ageRange.end.round()} years',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: AppTheme.primaryColor,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -771,7 +771,7 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                     },
                     title: Text(language),
                     trailing: language == _selectedLanguage
-                        ? Icon(
+                        ? const Icon(
                             Icons.check_circle,
                             color: AppTheme.primaryColor,
                           )
