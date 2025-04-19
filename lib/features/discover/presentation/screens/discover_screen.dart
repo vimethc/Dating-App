@@ -14,6 +14,11 @@ class DiscoverScreen extends StatefulWidget {
 class _DiscoverScreenState extends State<DiscoverScreen> {
   String? _currentAction;
   final CardSwiperController _swiperController = CardSwiperController();
+  
+  // Add filter state variables
+  RangeValues _ageRange = const RangeValues(18, 35);
+  double _maxDistance = 50;
+  String _selectedGender = 'All';
 
   final List<Map<String, dynamic>> _mockProfiles = [
     {
@@ -60,6 +65,168 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       'bio': 'Living life to the fullest',
     },
   ];
+
+  void _showFilterModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.zero,
+      ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => Container(
+          padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
+          height: MediaQuery.of(context).size.height * 0.7,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Filter',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Age Range',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '${_ageRange.start.round()} - ${_ageRange.end.round()} years',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              RangeSlider(
+                values: _ageRange,
+                min: 18,
+                max: 100,
+                divisions: 82,
+                activeColor: AppTheme.primaryColor,
+                labels: RangeLabels(
+                  _ageRange.start.round().toString(),
+                  _ageRange.end.round().toString(),
+                ),
+                onChanged: (RangeValues values) {
+                  setState(() {
+                    _ageRange = values;
+                  });
+                },
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Maximum Distance',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '${_maxDistance.round()} km',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              Slider(
+                value: _maxDistance,
+                min: 1,
+                max: 100,
+                divisions: 99,
+                activeColor: AppTheme.primaryColor,
+                label: '${_maxDistance.round()} km',
+                onChanged: (double value) {
+                  setState(() {
+                    _maxDistance = value;
+                  });
+                },
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Show Me',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                children: [
+                  'All',
+                  'Women',
+                  'Men',
+                ].map((gender) => ChoiceChip(
+                  label: Text(gender),
+                  selected: _selectedGender == gender,
+                  onSelected: (bool selected) {
+                    if (selected) {
+                      setState(() {
+                        _selectedGender = gender;
+                      });
+                    }
+                  },
+                )).toList(),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  onPressed: () {
+                    // Apply filters and close modal
+                    Navigator.pop(context);
+                  },
+                  child: const Text(
+                    'Apply Filters',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -117,10 +284,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.tune),
-            color: Colors.black,
-            onPressed: () {
-              // Handle settings
-            },
+            color: Colors.black87,
+            onPressed: _showFilterModal,
           ),
           IconButton(
             icon: const Icon(Icons.flash_on),
