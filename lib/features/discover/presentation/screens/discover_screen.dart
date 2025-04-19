@@ -17,16 +17,14 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
   final List<Map<String, dynamic>> _mockProfiles = [
     {
-      'name': 'Ida',
-      'age': 19,
+      'name': 'Elisa',
+      'age': 20,
       'imageUrl': 'https://picsum.photos/400/600?random=1',
       'tags': [
-        {'icon': Icons.fitness_center, 'label': 'Sometimes'},
-        {'icon': Icons.smoke_free, 'label': 'Non-smoker'},
-        {'icon': Icons.local_bar, 'label': 'Socially, at the weekend'},
-        {'icon': Icons.star, 'label': 'Cancer'},
+        {'icon': Icons.interests, 'label': 'Films'},
+        {'icon': Icons.sports, 'label': 'Sports'},
       ],
-      'bio': 'Basics & lifestyle',
+      'bio': 'Prinzessin',
     },
     {
       'name': 'Sarah',
@@ -105,15 +103,28 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text(
+          'Discover',
+          style: TextStyle(
+            color: AppTheme.primaryColor,
+            fontSize: 35,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.tune),
+            color: Colors.black,
             onPressed: () {
               // Handle settings
             },
           ),
           IconButton(
             icon: const Icon(Icons.flash_on),
+            color: Colors.purple,
             onPressed: () {
               // Handle boost
             },
@@ -124,6 +135,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         children: [
           Expanded(
             child: Stack(
+              fit: StackFit.expand,
               children: [
                 CardSwiper(
                   controller: _swiperController,
@@ -149,24 +161,10 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                   ),
                 ),
                 if (_currentAction != null)
-                  Center(
-                    child: ActionOverlay(
-                      action: _currentAction!,
-                    ),
+                  ActionOverlay(
+                    action: _currentAction!,
                   ),
               ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border(
-                top: BorderSide(
-                  color: Colors.grey.shade200,
-                  width: 1,
-                ),
-              ),
             ),
           ),
         ],

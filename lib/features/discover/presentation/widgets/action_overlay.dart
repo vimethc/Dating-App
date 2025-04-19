@@ -10,68 +10,87 @@ class ActionOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    IconData icon;
-    Color color;
     String text;
+    Color color;
+    double rotation;
 
     switch (action.toLowerCase()) {
       case 'like':
-        icon = Icons.favorite;
-        color = Colors.green;
         text = 'LIKE';
+        color = const Color(0xFF2ECC71); // Green color
+        rotation = -0.4; // Rotate counter-clockwise
         break;
       case 'dislike':
-        icon = Icons.close;
-        color = Colors.red;
         text = 'NOPE';
+        color = const Color(0xFFFF4D4F); // Red color
+        rotation = 0.4; // Rotate clockwise
         break;
       case 'superlike':
-        icon = Icons.star;
-        color = Colors.blue;
-        text = 'SUPER LIKE';
+        text = 'SUPER\nLIKE';
+        color = const Color(0xFF47A6FF); // Blue color
+        rotation = 0.0;
         break;
       default:
-        icon = Icons.help_outline;
-        color = Colors.grey;
-        text = 'UNKNOWN';
+        return const SizedBox.shrink();
     }
 
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      builder: (context, value, child) {
-        return Transform.scale(
-          scale: value,
+    return Positioned(
+      top: 50,
+      left: 0,
+      right: 0,
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.0, end: 1.0),
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+        builder: (context, value, child) {
+          return Transform.scale(
+            scale: value,
+            child: child,
+          );
+        },
+        child: Transform.rotate(
+          angle: rotation,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            decoration: BoxDecoration(
-              border: Border.all(color: color, width: 4),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Stack(
               children: [
-                Icon(
-                  icon,
-                  size: 48,
-                  color: color,
-                ),
-                const SizedBox(height: 8),
+                // Shadow text for 3D effect
                 Text(
                   text,
+                  textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: color,
-                    fontSize: 24,
+                    fontSize: 48,
                     fontWeight: FontWeight.bold,
-                    letterSpacing: 2,
+                    letterSpacing: 4,
+                    foreground: Paint()
+                      ..style = PaintingStyle.stroke
+                      ..strokeWidth = 8
+                      ..color = Colors.black.withOpacity(0.2),
+                  ),
+                ),
+                // Main text
+                Text(
+                  text,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 48,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 4,
+                    color: color,
+                    shadows: [
+                      Shadow(
+                        blurRadius: 8,
+                        color: color.withOpacity(0.3),
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 } 
