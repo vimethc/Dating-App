@@ -95,6 +95,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     },
   ];
 
+  // Add payment state
+  bool _isProcessingPayment = false;
+
   void _showFilterModal() {
     showModalBottomSheet(
       context: context,
@@ -320,27 +323,129 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   }
 
   Future<void> _handleBoostPurchase(Map<String, dynamic> package) async {
+    // If already processing, prevent double-taps
+    if (_isProcessingPayment) return;
+
     try {
-      // TODO: Implement actual payment processing
-      // This is a mock implementation
-      await Future.delayed(const Duration(seconds: 2)); // Simulate payment processing
-      
-      Navigator.pop(context); // Close the boost modal
+      setState(() {
+        _isProcessingPayment = true;
+      });
+
+      // Show processing dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return Dialog(
+            backgroundColor: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.purple),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Processing Payment: \$${package['price'].toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+
+      // Simulate payment processing with random success/failure
+      await Future.delayed(const Duration(seconds: 2));
+      final bool paymentSuccess = DateTime.now().millisecond % 2 == 0; // Random success/failure
+
+      // Close processing dialog
+      Navigator.pop(context);
+
+      if (!paymentSuccess) {
+        throw Exception('Payment failed');
+      }
+
+      // Close boost modal
+      Navigator.pop(context);
+
+      // Start the boost timer
       _startBoostTimer(package['duration']);
-      
+
+      // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Your profile is now boosted for ${package['duration']} minutes!'),
-          backgroundColor: Colors.purple,
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Payment Successful!',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      'Your profile is now boosted for ${package['duration']} minutes',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 4),
         ),
       );
     } catch (e) {
+      // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to process payment. Please try again.'),
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Payment Failed',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      'Please check your payment method and try again',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
           backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
+          action: SnackBarAction(
+            label: 'RETRY',
+            textColor: Colors.white,
+            onPressed: () => _handleBoostPurchase(package),
+          ),
         ),
       );
+    } finally {
+      setState(() {
+        _isProcessingPayment = false;
+      });
     }
   }
 
