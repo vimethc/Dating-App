@@ -12,10 +12,15 @@ class DiscoverScreen extends StatefulWidget {
   State<DiscoverScreen> createState() => _DiscoverScreenState();
 }
 
-class _DiscoverScreenState extends State<DiscoverScreen> {
+class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProviderStateMixin {
   String? _currentAction;
   final CardSwiperController _swiperController = CardSwiperController();
   
+  // Animation controllers
+  late AnimationController _buttonAnimationController;
+  String? _activeButton;
+  Timer? _buttonResetTimer;
+
   // Add filter state variables
   RangeValues _ageRange = const RangeValues(18, 35);
   double _maxDistance = 50;
@@ -98,176 +103,38 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   // Add payment state
   bool _isProcessingPayment = false;
 
-  void _showFilterModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.zero,
-      ),
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Container(
-          padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
-          height: MediaQuery.of(context).size.height * 0.7,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Filter',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Age Range',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '${_ageRange.start.round()} - ${_ageRange.end.round()} years',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: AppTheme.primaryColor,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-              RangeSlider(
-                values: _ageRange,
-                min: 18,
-                max: 100,
-                divisions: 82,
-                activeColor: AppTheme.primaryColor,
-                labels: RangeLabels(
-                  _ageRange.start.round().toString(),
-                  _ageRange.end.round().toString(),
-                ),
-                onChanged: (RangeValues values) {
-                  setState(() {
-                    _ageRange = values;
-                  });
-                },
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Maximum Distance',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '${_maxDistance.round()} km',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: AppTheme.primaryColor,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-              Slider(
-                value: _maxDistance,
-                min: 1,
-                max: 100,
-                divisions: 99,
-                activeColor: AppTheme.primaryColor,
-                label: '${_maxDistance.round()} km',
-                onChanged: (double value) {
-                  setState(() {
-                    _maxDistance = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Show Me',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 8,
-                children: [
-                  'All',
-                  'Women',
-                  'Men',
-                ].map((gender) => ChoiceChip(
-                  label: Text(gender),
-                  selected: _selectedGender == gender,
-                  onSelected: (bool selected) {
-                    if (selected) {
-                      setState(() {
-                        _selectedGender = gender;
-                      });
-                    }
-                  },
-                )).toList(),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryColor,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  onPressed: () {
-                    // Apply filters and close modal
-                    Navigator.pop(context);
-                  },
-                  child: const Text(
-                    'Apply Filters',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+  @override
+  void initState() {
+    super.initState();
+    _buttonAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
     );
   }
 
   @override
   void dispose() {
-    _boostTimer?.cancel();
+    _buttonAnimationController.dispose();
+    _buttonResetTimer?.cancel();
     _swiperController.dispose();
+    _boostTimer?.cancel();
     super.dispose();
   }
 
+  void _animateButton(String buttonType) {
+    setState(() => _activeButton = buttonType);
+    _buttonAnimationController.forward(from: 0).then((_) {
+      _buttonResetTimer?.cancel();
+      _buttonResetTimer = Timer(const Duration(milliseconds: 200), () {
+        if (mounted) {
+          setState(() => _activeButton = null);
+        }
+      });
+    });
+  }
+
   void _showActionOverlay(String action) {
+    _animateButton(action);
     setState(() => _currentAction = action);
     Future.delayed(const Duration(milliseconds: 800), () {
       if (mounted) {
@@ -707,7 +574,263 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               ],
             ),
           ),
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 1,
+                  blurRadius: 10,
+                  offset: const Offset(0, -1),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildActionButton(
+                  onTap: _handleDislike,
+                  icon: Icons.close,
+                  color: Colors.red,
+                  size: 30,
+                  backgroundColor: Colors.white,
+                  borderColor: Colors.red,
+                  isActive: _activeButton == 'dislike',
+                ),
+                _buildActionButton(
+                  onTap: _handleSuperLike,
+                  icon: Icons.star,
+                  color: Colors.blue,
+                  size: 25,
+                  backgroundColor: Colors.white,
+                  borderColor: Colors.blue,
+                  isActive: _activeButton == 'superlike',
+                ),
+                _buildActionButton(
+                  onTap: _handleLike,
+                  icon: Icons.favorite,
+                  color: Colors.green,
+                  size: 30,
+                  backgroundColor: Colors.white,
+                  borderColor: Colors.green,
+                  isActive: _activeButton == 'like',
+                ),
+              ],
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required VoidCallback onTap,
+    required IconData icon,
+    required Color color,
+    required double size,
+    required Color backgroundColor,
+    required Color borderColor,
+    required bool isActive,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: 60,
+        height: 60,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: isActive ? borderColor : backgroundColor,
+          border: Border.all(
+            color: borderColor,
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: borderColor.withOpacity(isActive ? 0.4 : 0.2),
+              spreadRadius: isActive ? 4 : 2,
+              blurRadius: isActive ? 16 : 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: AnimatedScale(
+          scale: isActive ? 1.2 : 1.0,
+          duration: const Duration(milliseconds: 200),
+          child: AnimatedRotation(
+            turns: isActive ? 1/8 : 0,
+            duration: const Duration(milliseconds: 200),
+            child: Icon(
+              icon,
+              color: isActive ? backgroundColor : color,
+              size: size,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showFilterModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.zero,
+      ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => Container(
+          padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
+          height: MediaQuery.of(context).size.height * 0.7,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Filter',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Age Range',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '${_ageRange.start.round()} - ${_ageRange.end.round()} years',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              RangeSlider(
+                values: _ageRange,
+                min: 18,
+                max: 100,
+                divisions: 82,
+                activeColor: AppTheme.primaryColor,
+                labels: RangeLabels(
+                  _ageRange.start.round().toString(),
+                  _ageRange.end.round().toString(),
+                ),
+                onChanged: (RangeValues values) {
+                  setState(() {
+                    _ageRange = values;
+                  });
+                },
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Maximum Distance',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '${_maxDistance.round()} km',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              Slider(
+                value: _maxDistance,
+                min: 1,
+                max: 100,
+                divisions: 99,
+                activeColor: AppTheme.primaryColor,
+                label: '${_maxDistance.round()} km',
+                onChanged: (double value) {
+                  setState(() {
+                    _maxDistance = value;
+                  });
+                },
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Show Me',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                children: [
+                  'All',
+                  'Women',
+                  'Men',
+                ].map((gender) => ChoiceChip(
+                  label: Text(gender),
+                  selected: _selectedGender == gender,
+                  onSelected: (bool selected) {
+                    if (selected) {
+                      setState(() {
+                        _selectedGender = gender;
+                      });
+                    }
+                  },
+                )).toList(),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  onPressed: () {
+                    // Apply filters and close modal
+                    Navigator.pop(context);
+                  },
+                  child: const Text(
+                    'Apply Filters',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
