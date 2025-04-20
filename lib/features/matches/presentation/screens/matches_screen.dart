@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../chat/presentation/screens/chat_screen.dart';
 
 class MatchesScreen extends StatefulWidget {
   const MatchesScreen({super.key});
@@ -190,7 +191,12 @@ class _MatchesScreenState extends State<MatchesScreen> with SingleTickerProvider
                   ],
                 ),
                 onTap: () {
-                  // Navigate to chat screen
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChatScreen(match: match),
+                    ),
+                  );
                 },
               );
             },
@@ -306,7 +312,12 @@ class _MatchesScreenState extends State<MatchesScreen> with SingleTickerProvider
               final match = _mockMatches[index];
               return GestureDetector(
                 onTap: () {
-                  // Navigate to chat or profile
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChatScreen(match: match),
+                    ),
+                  );
                 },
                 child: Container(
                   decoration: BoxDecoration(
