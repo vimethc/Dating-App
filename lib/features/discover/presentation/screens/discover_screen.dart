@@ -3,6 +3,7 @@ import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import '../widgets/action_overlay.dart';
 import '../widgets/profile_card.dart';
 import '../../../../core/theme/app_theme.dart';
+import 'dart:async';
 
 class DiscoverScreen extends StatefulWidget {
   const DiscoverScreen({super.key});
@@ -19,6 +20,34 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   RangeValues _ageRange = const RangeValues(18, 35);
   double _maxDistance = 50;
   String _selectedGender = 'All';
+
+  // Add boost-related state variables
+  bool _isBoostActive = false;
+  int _remainingBoostSeconds = 0;
+  Timer? _boostTimer;
+  
+  // Boost package options
+  final List<Map<String, dynamic>> _boostPackages = [
+    {
+      'duration': 30,
+      'price': 4.99,
+      'description': '30 minutes boost',
+      'multiplier': '5x',
+    },
+    {
+      'duration': 60,
+      'price': 8.99,
+      'description': '1 hour boost',
+      'multiplier': '8x',
+      'popular': true,
+    },
+    {
+      'duration': 120,
+      'price': 14.99,
+      'description': '2 hours boost',
+      'multiplier': '10x',
+    },
+  ];
 
   final List<Map<String, dynamic>> _mockProfiles = [
     {
@@ -65,6 +94,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       'bio': 'Living life to the fullest',
     },
   ];
+
+  // Add payment state
+  bool _isProcessingPayment = false;
 
   void _showFilterModal() {
     showModalBottomSheet(
@@ -230,6 +262,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
   @override
   void dispose() {
+    _boostTimer?.cancel();
     _swiperController.dispose();
     super.dispose();
   }
@@ -266,6 +299,326 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     // Handle message logic
   }
 
+  void _startBoostTimer(int durationInMinutes) {
+    _remainingBoostSeconds = durationInMinutes * 60;
+    _isBoostActive = true;
+    _boostTimer?.cancel();
+    
+    _boostTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_remainingBoostSeconds > 0) {
+          _remainingBoostSeconds--;
+        } else {
+          _isBoostActive = false;
+          _boostTimer?.cancel();
+        }
+      });
+    });
+  }
+
+  String _formatBoostTimeRemaining() {
+    int minutes = _remainingBoostSeconds ~/ 60;
+    int seconds = _remainingBoostSeconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  Future<void> _handleBoostPurchase(Map<String, dynamic> package) async {
+    // If already processing, prevent double-taps
+    if (_isProcessingPayment) return;
+
+    try {
+      setState(() {
+        _isProcessingPayment = true;
+      });
+
+      // Show processing dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return Dialog(
+            backgroundColor: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.purple),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Processing Payment: \$${package['price'].toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+
+      // Simulate payment processing with random success/failure
+      await Future.delayed(const Duration(seconds: 2));
+      final bool paymentSuccess = DateTime.now().millisecond % 2 == 0; // Random success/failure
+
+      // Close processing dialog
+      Navigator.pop(context);
+
+      if (!paymentSuccess) {
+        throw Exception('Payment failed');
+      }
+
+      // Close boost modal
+      Navigator.pop(context);
+
+      // Start the boost timer
+      _startBoostTimer(package['duration']);
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Payment Successful!',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      'Your profile is now boosted for ${package['duration']} minutes',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    } catch (e) {
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Payment Failed',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      'Please check your payment method and try again',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
+          action: SnackBarAction(
+            label: 'RETRY',
+            textColor: Colors.white,
+            onPressed: () => _handleBoostPurchase(package),
+          ),
+        ),
+      );
+    } finally {
+      setState(() {
+        _isProcessingPayment = false;
+      });
+    }
+  }
+
+  void _showBoostModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => Container(
+          padding: const EdgeInsets.all(24),
+          height: MediaQuery.of(context).size.height * 0.7,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Get a Boost',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.flash_on,
+                    color: Colors.purple,
+                    size: 50,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Be seen by more people!',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Get up to 10x more profile views and increase your chances of finding a match.',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Choose Your Boost Package',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _boostPackages.length,
+                  itemBuilder: (context, index) {
+                    final package = _boostPackages[index];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(
+                          color: package['popular'] == true ? Colors.purple : Colors.grey.shade300,
+                          width: package['popular'] == true ? 2 : 1,
+                        ),
+                      ),
+                      child: InkWell(
+                        onTap: () => _handleBoostPurchase(package),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.purple.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.flash_on,
+                                  color: Colors.purple,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          package['description'],
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        if (package['popular'] == true) ...[
+                                          const SizedBox(width: 8),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 2,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.purple,
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: const Text(
+                                              'POPULAR',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Up to ${package['multiplier']} more views',
+                                      style: TextStyle(
+                                        color: Colors.grey.shade600,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Text(
+                                '\$${package['price'].toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.purple,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -287,12 +640,34 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             color: Colors.black87,
             onPressed: _showFilterModal,
           ),
-          IconButton(
-            icon: const Icon(Icons.flash_on),
-            color: Colors.purple,
-            onPressed: () {
-              // Handle boost
-            },
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.flash_on),
+                color: _isBoostActive ? Colors.purple : Colors.black87,
+                onPressed: _showBoostModal,
+              ),
+              if (_isBoostActive)
+                Positioned(
+                  bottom: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.purple,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      _formatBoostTimeRemaining(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ],
       ),
