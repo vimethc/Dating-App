@@ -62,6 +62,7 @@ dependencies:
   
   # Swipable
   flutter_card_swiper: ^6.0.0
+  flutter_slidable: ^3.0.1
 
 dev_dependencies:
   flutter_test:

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../chat/presentation/screens/chat_screen.dart';
+import '../../../messages/presentation/screens/messages_screen.dart';
 
 class MatchesScreen extends StatefulWidget {
   const MatchesScreen({super.key});
@@ -303,10 +304,7 @@ class _MatchesScreenState extends State<MatchesScreen> with SingleTickerProvider
       body: TabBarView(
         controller: _tabController,
         children: [
-          RefreshIndicator(
-            onRefresh: _handleRefresh,
-            child: _buildMessagesTab(),
-          ),
+          const MessagesScreen(),
           RefreshIndicator(
             onRefresh: _handleRefresh,
             child: _buildMatchesTab(),
@@ -314,102 +312,6 @@ class _MatchesScreenState extends State<MatchesScreen> with SingleTickerProvider
         ],
       ),
     );
-  }
-
-  Widget _buildMessagesTab() {
-    final activeChats = _filteredMatches.where((match) => match['lastMessage'] != null).toList();
-    
-    return activeChats.isEmpty
-        ? const Center(
-            child: Text(
-              'No messages yet.\nStart a conversation with your matches!',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.grey,
-                fontSize: 16,
-              ),
-            ),
-          )
-        : ListView.builder(
-            itemCount: activeChats.length,
-            itemBuilder: (context, index) {
-              final match = activeChats[index];
-              return InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ChatScreen(match: match),
-                    ),
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    children: [
-                      Stack(
-                        children: [
-                          CircleAvatar(
-                            radius: 30,
-                            backgroundImage: NetworkImage(match['imageUrl']),
-                          ),
-                          if (match['isOnline'] == true)
-                            Positioned(
-                              right: 0,
-                              bottom: 0,
-                              child: Container(
-                                width: 12,
-                                height: 12,
-                                decoration: BoxDecoration(
-                                  color: Colors.green,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 2,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${match['name']}, ${match['age']}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              match['lastMessage'],
-                              style: TextStyle(
-                                color: Colors.grey.shade600,
-                                fontSize: 14,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-                      Text(
-                        match['lastMessageTime'],
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
   }
 
   Widget _buildMatchesTab() {
